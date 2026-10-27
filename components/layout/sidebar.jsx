@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
 import { useUiStore } from "@/lib/stores/ui-store";
+import { navForRole } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { BrandMark } from "@/components/shared/brand-mark";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +80,8 @@ function UserCard({ profile, collapsed }) {
   );
 }
 
-export function Sidebar({ nav, profile }) {
+export function Sidebar({ profile }) {
+  const nav = navForRole(profile.role);
   const collapsed = useUiStore((s) => s.sidebarCollapsed);
   const toggle = useUiStore((s) => s.toggleSidebar);
   const mobileOpen = useUiStore((s) => s.mobileNavOpen);
