@@ -190,8 +190,10 @@ that have the column.
 - Admin invites employees (Team → Invite Employee) via a Server Action using
   `auth.admin.inviteUserByEmail` (secret key), then sets role / job title.
   Admin can deactivate users.
-- First admin: create the user in the Supabase dashboard, then run the SQL in
-  the Phase 1 notes to set `profiles.role = 'admin'`.
+- First admin: create the user in the Supabase dashboard (Authentication →
+  Users → Add user, auto-confirm), then in the SQL editor:
+  `update public.profiles set role = 'admin' where email = '<that email>';`
+  (The `profiles_protect_role` trigger allows this because there is no JWT.)
 - `/dashboard` redirects by role. `proxy.js` refreshes the session and sends
   anonymous users to `/login`. Admin layout and every admin Server Action
   re-check the role; an employee hitting `/admin/*` is redirected to `/employee`.
@@ -218,9 +220,21 @@ dark mode, avatar menu).
 
 Loading states, empty states, error boundaries and toasts everywhere.
 
+## Supabase DEV project
+- Project: `flowdesk-dev`, ref `cnncbzywdhrsbtsgsqqd` (org "Muhammad Aqib's projects", free plan).
+- The Supabase MCP connector has write access in this workspace; the user has
+  chosen that Claude applies migrations through it. Still: every change is first
+  written as a file in `supabase/migrations/` (source of truth), then applied with
+  `apply_migration` using the same name, then verified with `get_advisors`.
+- Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`;
+  `seed.sql` applied once.
+- Expected advisor findings (intentional): `employee_tasks_view` is SECURITY
+  DEFINER; `is_admin`, `activate_project`, `update_my_task_status` are executable
+  by `authenticated` (each checks its caller). `rls_auto_enable` is Supabase's own.
+
 ## Phases
-0. ✅ Project setup (this phase)
-1. Database migrations + seed
+0. ✅ Project setup
+1. ✅ Database migrations + seed
 2. Auth: login, role redirects, layouts, guards, invite flow
 3. Admin: Clients + Services (template editor)
 4. Admin: Projects (create, activate, detail)
