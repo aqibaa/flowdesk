@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
+import { requireUser, homePathForRole } from "@/lib/auth/guards";
 
-/**
- * Role-based entry point. Phase 2 replaces this placeholder with:
- *   admin -> /admin, employee -> /employee (role read from profiles.role).
- */
-export default function DashboardPage() {
-  redirect("/login");
+/** Role router: admin → /admin, employee → /employee (role from profiles.role). */
+export default async function DashboardPage() {
+  const { profile } = await requireUser();
+  redirect(homePathForRole(profile.role));
 }

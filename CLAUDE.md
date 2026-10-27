@@ -74,7 +74,8 @@ supabase/
   migrations/               timestamped SQL files — the ONLY way to change DB
   seed.sql                  demo data (Phase 1)
 proxy.js                    Next.js 16 proxy (middleware)
-.env.example                env var names only
+.env.example                env var names only (+ optional NEXT_PUBLIC_SITE_URL)
+docs/design/                mockup screenshots + README (visual direction)
 ```
 
 ## Working rules (strict)
@@ -232,10 +233,21 @@ Loading states, empty states, error boundaries and toasts everywhere.
   DEFINER; `is_admin`, `activate_project`, `update_my_task_status` are executable
   by `authenticated` (each checks its caller). `rls_auto_enable` is Supabase's own.
 
+## Auth implementation (Phase 2)
+- `lib/auth/get-current-profile.js` — `getCurrentProfile()` (React.cache): verifies JWT with `getClaims()`, loads `profiles` row.
+- `lib/auth/guards.js` — `requireUser()` / `requireAdmin()` for layouts & pages (redirect). `homePathForRole()`.
+- `lib/auth/action-guards.js` — `requireUserAction()` / `requireAdminAction()` for Server Actions (throw `AuthError`).
+- `lib/action-state.js` — `{ ok, message, errors }` shape for `useActionState`; `fieldErrors(zodError)`, `formToObject()`.
+- `lib/actions/auth.js` — `signIn`, `signOut`, `setPassword`. `lib/actions/team.js` — `inviteEmployee` (secret key, after admin check), `updateUserRole`, `setUserActive` (also bans/unbans at Auth level).
+- Invite link flow: Supabase email → `/auth/confirm?token_hash=…&type=invite` (`verifyOtp`) → `/auth/set-password` → role home. The **Invite user email template** in Supabase must link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`, and `/auth/confirm` must be in Redirect URLs. `NEXT_PUBLIC_SITE_URL` (optional) overrides the request host for those links.
+- Shell: `components/layout/{app-shell,sidebar,top-bar,user-menu,theme-toggle}.jsx`; nav config in `lib/navigation.js`; UI store `lib/stores/ui-store.js`.
+- Shared pieces: `components/shared/{page-header,empty-state,page-skeleton,form-message,brand-mark,coming-soon}.jsx`.
+- Design references: `docs/design/*.png` + `docs/design/README.md` (mockup "Orders" = our Projects; "Reports" page parked).
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
-2. Auth: login, role redirects, layouts, guards, invite flow
+2. ✅ Auth: login, role redirects, layouts, guards, invite flow (basic Team page)
 3. Admin: Clients + Services (template editor)
 4. Admin: Projects (create, activate, detail)
 5. Admin: Tasks (board, list, drawer, subtasks, comments, activity)
