@@ -234,7 +234,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -305,6 +305,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - DB (migration 11): `notify_user()` honours `profiles.notification_prefs` (skips only when both channels are off) and inactive users, never notifies the actor. Triggers: `tasks_notify` (assignment → assignee; status change → assignee + all active admins) and `task_comments_notify` (→ assignee; employee comments → admins). `activate_project` now assigns template tasks to the project lead, which fires `task_assigned` for each.
 - In-app: `AppShell` (async) fetches `listMyNotifications` once per request → `TopBar` → `components/layout/notifications-menu.jsx` (badge, latest 10, click = mark read + go to task, mark all). Actions in `lib/actions/notifications.js`.
 - Email: `lib/email/mailer.js` (server-only nodemailer, env `SMTP_HOST/PORT/USER/PASS/FROM`, null when unset) + `lib/email/dispatch.js` → `dispatchPendingEmails(taskId)`: secret-key client reads `notifications` with `emailed_at IS NULL` for that task, sends to recipients whose `email` toggle is on, stamps `emailed_at` (also when SMTP is off, so enabling it later never floods). Called after every notifying mutation in `lib/actions/{tasks,employee,projects}.js`. Best-effort; failures are logged, never surfaced.
+- Live toasts (migration 12): `notifications` is in the `supabase_realtime` publication; `components/layout/notification-toaster.jsx` (mounted in `AppShell`) subscribes to INSERTs filtered by `user_id` (RLS also scopes the channel), shows a sonner toast with an "Open" action and calls `router.refresh()` so the bell updates. Push, not polling.
 - `NOTIFICATION_EVENTS` keys = trigger types.
 
 ## Phases

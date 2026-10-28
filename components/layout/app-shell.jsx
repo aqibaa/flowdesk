@@ -1,6 +1,7 @@
 import { listMyNotifications } from "@/lib/queries/notifications";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
+import { NotificationToaster } from "@/components/layout/notification-toaster";
 
 /**
  * Shared chrome for both portals: sidebar + top bar + page area.
@@ -28,6 +29,8 @@ export async function AppShell({ profile, supabase, children }) {
       <Sidebar profile={plainProfile} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar profile={plainProfile} notifications={notifications} />
+        {/* Live toast for each new notification (Realtime push, no polling). */}
+        <NotificationToaster userId={profile.id} role={profile.role} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
