@@ -228,7 +228,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   written as a file in `supabase/migrations/` (source of truth), then applied with
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
-  `replace_service_template` (+ `_nullsafe` re-apply of the same function);
+  `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -268,13 +268,20 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Status rules: pending→active only via `activate_project` RPC; manual moves limited to `STATUS_TRANSITIONS` in validations (hold/resume/cancel/reopen). Service is locked once not pending. `lib/activity.js` renders activity_log rows as sentences.
 - `ConfirmDialog` supports controlled `open`/`onOpenChange` for use from dropdown items.
 
+## Tasks (Phase 5)
+- `lib/{validations,queries,actions}/tasks.js`. URL state on `/admin/tasks`: `view=list` (default board), `project`, `assignee` (`unassigned` or id), `priority`, `q`, list-only `status` + `page`, board-only `more_<status>` (extra pages of 10), `task=<id>` (drawer), `new=1[&new_status=…]` (create dialog).
+- Board: `app/(app)/admin/tasks/{page,tasks-toolbar,kanban-board-loader,kanban-board,tasks-list}.jsx`. dnd-kit via `next/dynamic` (`kanban-board-loader`). Cards are draggable **and** droppable (drop on a card = insert before it; on a column = append). `useOptimistic` + `move_task(task_id, status, ordered_ids)` RPC (migration 6, atomic status + positions); on failure the optimistic state is discarded and a toast shows.
+- Drawer: `components/tasks/{task-drawer,task-drawer-fields,subtasks-list,comments-section,task-activity,task-card}.jsx`. Fields save individually via `updateTask(id, patch)`; `SubtasksList` has `readOnly`, `CommentsSection` accepts `submitAction` — both reused by the employee portal.
+- Create: `components/forms/task-form-dialog.jsx` (react-hook-form; new cards get `position = count` in their column).
+- Admin comment action is `addComment` (admin-guarded); the employee portal gets its own in Phase 6.
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
 2. ✅ Auth: login, role redirects, layouts, guards, invite flow (basic Team page)
 3. ✅ Admin: Clients + Services (template editor)
 4. ✅ Admin: Projects (create, activate, detail)
-5. Admin: Tasks (board, list, drawer, subtasks, comments, activity)
+5. ✅ Admin: Tasks (board, list, drawer, subtasks, comments, activity)
 6. Employee portal
 7. Admin Dashboard, Global Monitor, Team
 8. Settings, hardening, deploy checklist
