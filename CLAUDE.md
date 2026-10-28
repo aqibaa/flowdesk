@@ -230,10 +230,11 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function);
   `seed.sql` applied once.
-- Render checks: a throwaway `qa-admin@flowdesk.test` user is created by the
-  user in the dashboard when needed (SQL-inserted auth users are rejected by
-  GoTrue), promoted via SQL, used with Playwright against `next start`, then
-  deleted.
+- The build sandbox has NO network route to `*.supabase.co` (only the MCP
+  connector reaches the project). A local `next start` here therefore cannot
+  log in or load data; signed-in render checks must be done by the user on
+  their machine. Claude verifies with build + lint + unauthenticated redirect
+  checks, and verifies SQL/RPC behaviour through the MCP.
 - Expected advisor findings (intentional): `employee_tasks_view` is SECURITY
   DEFINER; `is_admin`, `activate_project`, `update_my_task_status` are executable
   by `authenticated` (each checks its caller). `rls_auto_enable` is Supabase's own.
