@@ -16,22 +16,30 @@ import {
 
 /**
  * Generic "are you sure?" dialog around a Server Action.
- * `onConfirm` returns the action-state shape; toasts the result.
+ * `onConfirm` returns the action-state shape; the result is toasted.
+ *
+ * Uncontrolled: pass `trigger`. Controlled (e.g. opened from a dropdown
+ * item, which would unmount a nested trigger): pass `open` + `onOpenChange`.
  */
 export function ConfirmDialog({
   trigger,
+  open: controlledOpen,
+  onOpenChange,
   title,
   description,
   confirmLabel = "Confirm",
   destructive = false,
   onConfirm,
 }) {
-  const [open, setOpen] = useState(false);
+  const [innerOpen, setInnerOpen] = useState(false);
   const [pending, start] = useTransition();
+  const controlled = controlledOpen !== undefined;
+  const open = controlled ? controlledOpen : innerOpen;
+  const setOpen = controlled ? onOpenChange : setInnerOpen;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

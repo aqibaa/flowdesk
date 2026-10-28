@@ -261,12 +261,19 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `components/forms/service-form-dialog.jsx`. Editor panel = `?service=<id>`; dnd-kit loaded via `next/dynamic` only there.
   Template save = one RPC `replace_service_template(service_id, tasks jsonb)` (migration 5; array order → position).
 
+## Projects (Phase 4)
+- `lib/{validations,queries,actions}/projects.js`. Filters in URL: `q`, `status`, `service`, `client`, `page`; `?new=1` opens the create dialog (top bar link).
+- List: `app/(app)/admin/projects/{page,projects-filters,projects-table,activate-button}.jsx`; shared `components/shared/{url-select,due-date}.jsx`.
+- Detail: `app/(app)/admin/projects/[id]/{page,project-header,project-tasks,project-sidebar}.jsx` + loading/not-found. Task list is read-only here; edits happen on `/admin/tasks?project=<id>` (Phase 5; `&task=<id>` opens the drawer).
+- Status rules: pending→active only via `activate_project` RPC; manual moves limited to `STATUS_TRANSITIONS` in validations (hold/resume/cancel/reopen). Service is locked once not pending. `lib/activity.js` renders activity_log rows as sentences.
+- `ConfirmDialog` supports controlled `open`/`onOpenChange` for use from dropdown items.
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
 2. ✅ Auth: login, role redirects, layouts, guards, invite flow (basic Team page)
 3. ✅ Admin: Clients + Services (template editor)
-4. Admin: Projects (create, activate, detail)
+4. ✅ Admin: Projects (create, activate, detail)
 5. Admin: Tasks (board, list, drawer, subtasks, comments, activity)
 6. Employee portal
 7. Admin Dashboard, Global Monitor, Team
