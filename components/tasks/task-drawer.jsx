@@ -28,13 +28,13 @@ export function TaskDrawer({ task, options }) {
 
   return (
     <Sheet open={Boolean(task)} onOpenChange={(o) => !o && close()}>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl">
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
         {task && (
           <>
             <SheetTitle className="sr-only">{task.title}</SheetTitle>
             <SheetDescription className="sr-only">Task details</SheetDescription>
 
-            <div className="flex items-center gap-1.5 border-b px-5 py-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 border-b px-4 py-2.5 text-xs text-muted-foreground">
               <Link href={`/admin/clients?client=${task.project.client.id}`} className="hover:text-foreground">
                 {task.project.client.company_name}
               </Link>
@@ -47,7 +47,7 @@ export function TaskDrawer({ task, options }) {
             </div>
 
             <ScrollArea className="h-[calc(100vh-7rem)]">
-              <div className="space-y-6 px-5 py-5">
+              <div className="space-y-6 px-4 py-4">
                 <TaskDrawerFields key={task.id + task.updated_at} task={task} options={options} />
                 <SubtasksList taskId={task.id} subtasks={task.subtasks} />
                 <CommentsSection taskId={task.id} comments={task.comments} />
@@ -55,7 +55,7 @@ export function TaskDrawer({ task, options }) {
               </div>
             </ScrollArea>
 
-            <div className="flex items-center justify-between border-t px-5 py-3">
+            <div className="flex items-center justify-between border-t px-4 py-2.5">
               <span className="text-xs text-muted-foreground">
                 Reported by {task.reporter?.full_name ?? "—"}
               </span>

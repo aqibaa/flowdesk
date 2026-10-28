@@ -37,7 +37,7 @@ export default async function ProjectsPage({ searchParams }) {
         eyebrow="Delivery pipeline"
         title="Projects"
         description="Client projects created from service templates. Activate a pending project to copy its template tasks."
-        actions={<ProjectFormDialog options={options} defaultOpen={openNew} />}
+        actions={<ProjectFormDialog options={options} urlOpen={openNew} />}
       />
 
       <div className="mb-6 grid gap-4 sm:grid-cols-3">

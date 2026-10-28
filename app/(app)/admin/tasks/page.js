@@ -62,7 +62,8 @@ export default async function TasksPage({ searchParams }) {
           <>
             <StatChip icon={CircleDotIcon} label="Open" value={stats.open} tone="bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-300" />
             <StatChip icon={CheckCircle2Icon} label="Completed" value={stats.done} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300" />
-            <TaskFormDialog options={options} defaultProjectId={filters.project} defaultOpen={sp.new === "1"} />
+            {/* key: remount so the column "+" preselects that status */}
+            <TaskFormDialog key={sp.new_status ?? "todo"} options={options} defaultProjectId={filters.project} />
           </>
         }
       />

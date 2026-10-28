@@ -59,10 +59,14 @@ function SelectField({ control, name, label, id, placeholder, items, error, allo
  * Create task. Opens from the "+ Create Task" button, from a Kanban column
  * "+" (?new=1&new_status=…) and from the top of a project (defaultProjectId).
  */
-export function TaskFormDialog({ options, defaultProjectId, defaultOpen = false }) {
+export function TaskFormDialog({ options, defaultProjectId }) {
   const sp = useSearchParams();
   const { set } = useUrlState();
-  const [open, setOpen] = useState(defaultOpen);
+  // Open when the trigger is clicked OR when the URL says so (?new=1), so the
+  // Kanban column "+" buttons and deep links work without remounting.
+  const urlOpen = sp.get("new") === "1";
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = localOpen || urlOpen;
   const [pending, start] = useTransition();
   const [formError, setFormError] = useState(null);
   const initialStatus = TASK_STATUSES.includes(sp.get("new_status")) ? sp.get("new_status") : "todo";
@@ -82,11 +86,11 @@ export function TaskFormDialog({ options, defaultProjectId, defaultOpen = false 
   });
 
   const onOpenChange = (next) => {
-    setOpen(next);
+    setLocalOpen(next);
     if (!next) {
       setFormError(null);
       reset();
-      if (sp.get("new")) set({ new: null, new_status: null, page: sp.get("page") });
+      if (urlOpen) set({ new: null, new_status: null, page: sp.get("page") });
     }
   };
 

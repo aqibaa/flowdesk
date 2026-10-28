@@ -54,7 +54,8 @@ export function TopBar({ profile }) {
         </form>
 
         <div className="ml-auto flex items-center gap-1.5">
-          {isAdmin && (
+          {/* Hidden on the Projects pages, which have their own button. */}
+          {isAdmin && !pathname.startsWith("/admin/projects") && (
             <Button asChild size="sm" className="rounded-full">
               <Link href="/admin/projects?new=1">
                 <PlusIcon />

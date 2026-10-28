@@ -75,7 +75,7 @@ export function TaskDrawerFields({ task, options }) {
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         aria-label="Task title"
         className={cn(
-          "w-full rounded-lg bg-transparent px-2 py-1 font-heading text-2xl font-bold leading-tight outline-none -mx-2",
+          "w-full rounded-lg bg-transparent px-2 py-1 font-heading text-xl font-bold leading-tight outline-none -mx-2",
           "hover:bg-muted/50 focus:bg-muted/50 focus:ring-2 focus:ring-ring/30"
         )}
       />
@@ -99,7 +99,7 @@ export function TaskDrawerFields({ task, options }) {
         )}
       </div>
 
-      <div className="grid gap-4 rounded-xl bg-muted/40 p-4 sm:grid-cols-3">
+      <div className="grid gap-3 rounded-xl bg-muted/40 p-3">
         <div className="space-y-1.5">
           <Label htmlFor="task-assignee">Assignee</Label>
           <Select

@@ -27,12 +27,14 @@ const NONE = "__none__";
 
 /**
  * Create / edit a project. `options` = { clients, services, leads }.
- * `defaultOpen` opens it on mount (top bar "+ New Project" → ?new=1).
+ * `urlOpen` (= ?new=1 in the URL) opens the create dialog from the top bar link.
  */
-export function ProjectFormDialog({ project, options, trigger, defaultOpen = false }) {
+export function ProjectFormDialog({ project, options, trigger, urlOpen = false }) {
   const isEdit = Boolean(project);
   const router = useRouter();
-  const [open, setOpen] = useState(defaultOpen);
+  // Create dialog also opens from ?new=1 (top bar link); edit dialogs ignore it.
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = localOpen || (!isEdit && urlOpen);
   const [pending, start] = useTransition();
   const [formError, setFormError] = useState(null);
   const serviceLocked = isEdit && project.status !== "pending";
@@ -50,12 +52,12 @@ export function ProjectFormDialog({ project, options, trigger, defaultOpen = fal
   });
 
   const onOpenChange = (next) => {
-    setOpen(next);
+    setLocalOpen(next);
     if (!next) {
       setFormError(null);
       reset();
       // Drop ?new=1 so a refresh does not reopen the dialog.
-      if (defaultOpen) router.replace("/admin/projects");
+      if (urlOpen) router.replace("/admin/projects");
     }
   };
 
