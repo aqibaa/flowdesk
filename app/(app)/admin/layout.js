@@ -8,6 +8,6 @@ import { AppShell } from "@/components/layout/app-shell";
  * layout is not a security boundary for mutations.
  */
 export default async function AdminLayout({ children }) {
-  const { profile } = await requireAdmin();
-  return <AppShell profile={profile}>{children}</AppShell>;
+  const { supabase, profile } = await requireAdmin();
+  return <AppShell profile={profile} supabase={supabase}>{children}</AppShell>;
 }

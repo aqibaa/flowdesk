@@ -2,25 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BellIcon, ChevronRightIcon, HomeIcon, MenuIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { ChevronRightIcon, HomeIcon, MenuIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { useUiStore } from "@/lib/stores/ui-store";
 import { labelForPath } from "@/lib/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { NotificationsMenu } from "@/components/layout/notifications-menu";
 
 /**
  * Top bar: mobile menu, search (routes to the right list page), "+ New
  * Project" (admin), notifications, theme toggle, avatar menu; plus a
  * breadcrumb strip underneath, as in the mockups.
  */
-export function TopBar({ profile }) {
+export function TopBar({ profile, notifications }) {
   const pathname = usePathname();
   const setMobileOpen = useUiStore((s) => s.setMobileNavOpen);
   const isAdmin = profile.role === "admin";
@@ -64,19 +59,7 @@ export function TopBar({ profile }) {
             </Button>
           )}
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Notifications">
-                <BellIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-              <p className="px-2 pb-2 text-sm text-muted-foreground">
-                You&apos;re all caught up.
-              </p>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <NotificationsMenu items={notifications.items} unread={notifications.unread} role={profile.role} />
 
           <ThemeToggle />
           <UserMenu profile={profile} />

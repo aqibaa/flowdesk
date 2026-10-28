@@ -147,6 +147,7 @@ completed)` · `task_priority (low, medium, high, urgent)`
 | `task_subtasks` | `id`, `task_id → tasks (cascade)`, `title`, `is_done default false`, `position` |
 | `task_comments` | `id`, `task_id → tasks (cascade)`, `author_id → profiles`, `body not null`, `created_at` |
 | `activity_log` | `id`, `actor_id → profiles`, `project_id`, `task_id`, `action text`, `meta jsonb`, `created_at` |
+| `notifications` | `id`, `user_id → profiles`, `actor_id`, `type text` (task_assigned / task_status_changed / task_commented), `title`, `body`, `task_id`, `project_id`, `is_read`, `emailed_at`, `created_at`. Written by triggers only (migration 11). |
 
 Indexes: `tasks(assignee_id, status)`, `tasks(project_id, status)`,
 `projects(client_id)`, `projects(status)`, `task_comments(task_id)`,
@@ -160,8 +161,9 @@ that have the column.
    `active`.
 2. `completed_at` trigger: set when status becomes `completed`, cleared otherwise.
 3. `activate_project(project_id)` RPC (admin only, one transaction): status →
-   `active`, copies the service's template tasks into `tasks` (unassigned,
-   `todo`, reporter = caller). Idempotent: refuses if already activated.
+   `active`, copies the service's template tasks into `tasks` (`todo`,
+   reporter = caller, **assignee = project lead** since migration 11).
+   Idempotent: refuses if already activated.
 4. `update_my_task_status(task_id, new_status)` RPC (security definer):
    allowed only if `tasks.assignee_id = auth.uid()`; updates ONLY status.
    Employees have NO direct UPDATE policy on `tasks`.
@@ -184,6 +186,7 @@ that have the column.
 - `task_subtasks`, `task_comments`: admin full; employee read, and insert
   comments, only on tasks assigned to them.
 - `activity_log`: admin read; no direct writes (triggers only).
+- `notifications`: user reads own, updates own (is_read); no inserts (triggers only).
 - Anon: nothing.
 
 ## Auth flow
@@ -231,7 +234,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -298,6 +301,12 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Verified: no `getSession` anywhere; `SUPABASE_SECRET_KEY` read only in `lib/supabase/admin.js`, imported only from `lib/actions/team.js` (`"use server"`); build-time canary never appears in `.next/static`; git history clean of secrets.
 - `docs/DEPLOY.md` is the production checklist (Supabase prod project, SMTP, leaked-password protection, Vercel env vars, smoke test).
 
+## Notifications (Phase 9)
+- DB (migration 11): `notify_user()` honours `profiles.notification_prefs` (skips only when both channels are off) and inactive users, never notifies the actor. Triggers: `tasks_notify` (assignment → assignee; status change → assignee + all active admins) and `task_comments_notify` (→ assignee; employee comments → admins). `activate_project` now assigns template tasks to the project lead, which fires `task_assigned` for each.
+- In-app: `AppShell` (async) fetches `listMyNotifications` once per request → `TopBar` → `components/layout/notifications-menu.jsx` (badge, latest 10, click = mark read + go to task, mark all). Actions in `lib/actions/notifications.js`.
+- Email: `lib/email/mailer.js` (server-only nodemailer, env `SMTP_HOST/PORT/USER/PASS/FROM`, null when unset) + `lib/email/dispatch.js` → `dispatchPendingEmails(taskId)`: secret-key client reads `notifications` with `emailed_at IS NULL` for that task, sends to recipients whose `email` toggle is on, stamps `emailed_at` (also when SMTP is off, so enabling it later never floods). Called after every notifying mutation in `lib/actions/{tasks,employee,projects}.js`. Best-effort; failures are logged, never surfaced.
+- `NOTIFICATION_EVENTS` keys = trigger types.
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
@@ -308,6 +317,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 6. ✅ Employee portal
 7. ✅ Admin Dashboard, Global Monitor, Team
 8. ✅ Settings, hardening, deploy checklist
+9. ✅ Notifications (in-app + email), activation assigns lead
 
 Manual test checklists are delivered at the end of phases 2, 6 and 8.
 

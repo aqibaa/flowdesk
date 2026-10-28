@@ -55,7 +55,7 @@ export function NotificationPrefsForm({ stored }) {
         ))}
       </div>
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">Email delivery is not connected yet; preferences are stored for when it is.</p>
+        <p className="text-xs text-muted-foreground">In-app alerts show in the bell. Email needs SMTP configured by your admin.</p>
         <Button onClick={save} disabled={!dirty || pending}>
           {pending ? <Loader2Icon className="animate-spin" /> : <CheckIcon />} Save preferences
         </Button>

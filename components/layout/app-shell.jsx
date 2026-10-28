@@ -1,13 +1,14 @@
+import { listMyNotifications } from "@/lib/queries/notifications";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 
 /**
  * Shared chrome for both portals: sidebar + top bar + page area.
- * Server Component — receives the already-verified profile from the layout.
- * Only plain data crosses to the client components; they derive the nav
- * (icon components included) from `profile.role` via lib/navigation.js.
+ * Server Component — receives the already-verified profile and the
+ * request-bound Supabase client from the layout. Only plain data crosses
+ * to the client components.
  */
-export function AppShell({ profile, children }) {
+export async function AppShell({ profile, supabase, children }) {
   const plainProfile = {
     id: profile.id,
     full_name: profile.full_name,
@@ -16,6 +17,9 @@ export function AppShell({ profile, children }) {
     job_title: profile.job_title,
   };
 
+  // Notifications are fetched once per request for the bell (no polling).
+  const notifications = await listMyNotifications(supabase, 10);
+
   // `portal-employee` swaps the primary/accent tokens to blue (globals.css).
   const portalClass = profile.role === "employee" ? "portal-employee" : "";
 
@@ -23,7 +27,7 @@ export function AppShell({ profile, children }) {
     <div className={`flex min-h-screen bg-background ${portalClass}`}>
       <Sidebar profile={plainProfile} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar profile={plainProfile} />
+        <TopBar profile={plainProfile} notifications={notifications} />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>

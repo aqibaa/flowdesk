@@ -39,7 +39,10 @@ on the `flowdesk-dev` project and must be repeated on a production project.
       - `NEXT_PUBLIC_SUPABASE_URL`
       - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
       - `SUPABASE_SECRET_KEY` (server-only; Vercel never exposes non-`NEXT_PUBLIC_` vars to the browser)
-      - `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (used in invite links)
+      - `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (used in invite + notification links)
+      - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — optional;
+        enables email notifications via nodemailer (Resend/Brevo/Workspace SMTP).
+        Without them only in-app (bell) notifications are sent.
 - [ ] Deploy. Confirm `/login` loads and the response has the security headers
       (`Content-Security-Policy`, `X-Frame-Options: DENY`, HSTS; no `X-Powered-By`).
 - [ ] Add the Vercel preview domain pattern to Supabase Redirect URLs if you
