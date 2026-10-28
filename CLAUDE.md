@@ -227,8 +227,13 @@ Loading states, empty states, error boundaries and toasts everywhere.
   chosen that Claude applies migrations through it. Still: every change is first
   written as a file in `supabase/migrations/` (source of truth), then applied with
   `apply_migration` using the same name, then verified with `get_advisors`.
-- Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`;
+- Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
+  `replace_service_template` (+ `_nullsafe` re-apply of the same function);
   `seed.sql` applied once.
+- Render checks: a throwaway `qa-admin@flowdesk.test` user is created by the
+  user in the dashboard when needed (SQL-inserted auth users are rejected by
+  GoTrue), promoted via SQL, used with Playwright against `next start`, then
+  deleted.
 - Expected advisor findings (intentional): `employee_tasks_view` is SECURITY
   DEFINER; `is_admin`, `activate_project`, `update_my_task_status` are executable
   by `authenticated` (each checks its caller). `rls_auto_enable` is Supabase's own.
@@ -244,11 +249,22 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Shared pieces: `components/shared/{page-header,empty-state,page-skeleton,form-message,brand-mark,coming-soon}.jsx`.
 - Design references: `docs/design/*.png` + `docs/design/README.md` (mockup "Orders" = our Projects; "Reports" page parked).
 
+## Admin pages implemented (Phase 3)
+- List pattern: `lib/search-params.js` (parsePage/parseQuery/pageRange/ilikePattern),
+  `hooks/use-url-state.js` (set params, resets page), `components/shared/{search-input,pagination,kpi-card,confirm-dialog,field}.jsx`.
+- Forms: react-hook-form + `zodResolver`; Server Action returns `{ok,message,errors}`;
+  `errors` keys are dotted paths (`tasks.2.title`) mapped back with `setError`.
+- Clients: `lib/{validations,queries,actions}/clients.js`, `app/(app)/admin/clients/{page,clients-table,client-detail-panel}.jsx`,
+  `components/forms/client-form-dialog.jsx`. Detail panel = `?client=<id>`; delete blocked while projects exist (FK restrict).
+- Services: `lib/{validations,queries,actions}/services.js`, `app/(app)/admin/services/{page,service-cards,template-editor-panel,template-editor}.jsx`,
+  `components/forms/service-form-dialog.jsx`. Editor panel = `?service=<id>`; dnd-kit loaded via `next/dynamic` only there.
+  Template save = one RPC `replace_service_template(service_id, tasks jsonb)` (migration 5; array order → position).
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
 2. ✅ Auth: login, role redirects, layouts, guards, invite flow (basic Team page)
-3. Admin: Clients + Services (template editor)
+3. ✅ Admin: Clients + Services (template editor)
 4. Admin: Projects (create, activate, detail)
 5. Admin: Tasks (board, list, drawer, subtasks, comments, activity)
 6. Employee portal
