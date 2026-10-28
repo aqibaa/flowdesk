@@ -215,7 +215,8 @@ dark mode, avatar menu).
 | `/admin/services` | service cards + drawer to edit ordered task template |
 | `/admin/team` | employee list with workload meter, invite modal |
 | `/admin/clients` | table + add/edit form + detail drawer listing projects with progress |
-| `/admin/settings` | profile, roles & access, notification toggles |
+| `/admin/settings` | profile, password, roles & access, notification toggles |
+| `/employee/settings` | own profile, password, notification toggles |
 | `/employee` | my open tasks count, due soon, completed this week |
 | `/employee/tasks` | my tasks grouped by client → project, status dropdown / quick-complete, drawer with subtasks + comments |
 | `/employee/board` | personal Kanban of my tasks (drop = status change) |
@@ -230,7 +231,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -249,7 +250,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - `lib/actions/auth.js` — `signIn`, `signOut`, `setPassword`. `lib/actions/team.js` — `inviteEmployee` (secret key, after admin check), `updateUserRole`, `setUserActive` (also bans/unbans at Auth level).
 - Invite link flow: Supabase email → `/auth/confirm?token_hash=…&type=invite` (`verifyOtp`) → `/auth/set-password` → role home. The **Invite user email template** in Supabase must link to `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`, and `/auth/confirm` must be in Redirect URLs. `NEXT_PUBLIC_SITE_URL` (optional) overrides the request host for those links.
 - Shell: `components/layout/{app-shell,sidebar,top-bar,user-menu,theme-toggle}.jsx`; nav config in `lib/navigation.js`; UI store `lib/stores/ui-store.js`.
-- Shared pieces: `components/shared/{page-header,empty-state,page-skeleton,form-message,brand-mark,coming-soon}.jsx`.
+- Shared pieces: `components/shared/{page-header,empty-state,page-skeleton,form-message,brand-mark}.jsx`.
 - Design references: `docs/design/*.png` + `docs/design/README.md` (mockup "Orders" = our Projects; "Reports" page parked).
 
 ## Admin pages implemented (Phase 3)
@@ -289,6 +290,14 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - `lib/queries/monitor.js`: KPIs (active, at-risk, team load % = Σ hours_due_this_week ÷ (employees × 40)), `getTopProjects` (5 active, soonest due, tasks in position order = "delivery pipeline", distinct assignees), `getWorkloadHeatmap` (Mon–Fri estimated hours of open tasks due per day). `/admin/monitor`: `{page,refresh-button,project-monitor-card,workload-heatmap}.jsx`; `RefreshButton` = `router.refresh()`, no polling.
 - `lib/queries/team.js`: profiles merged with `employee_workload_view`; `getTeamStats`. `/admin/team`: KPIs, search (`q`), workload meter column, "View tasks" → `/admin/tasks?assignee=<id>`, role select, deactivate via row menu. `lib/workload.js` → `workloadStatus(percent)` shared.
 
+## Settings & hardening (Phase 8)
+- `profiles.notification_prefs jsonb` (migration 10): `{event: {email, in_app}}`, missing keys = enabled; events in `NOTIFICATION_EVENTS` (`lib/validations/settings.js`). Preferences only — no email sending exists.
+- `lib/actions/settings.js`: `updateMyProfile`, `changeMyPassword` (Auth `updateUser`), `updateMyNotificationPrefs` — all own-row, any role.
+- `/admin/settings`: tab strip (`settings-tabs.jsx`, scroll-spy) over Profile / Password / Roles & Access (`roles-access.jsx` → `updateUserRole`) / Notifications. `/employee/settings`: Profile / Password / Notifications. Shared forms in `components/forms/{profile-form,password-form,notification-prefs-form}.jsx`, wrapper `components/shared/settings-section.jsx`.
+- `next.config.mjs`: security headers (CSP with Supabase origin in `connect-src`, `frame-ancestors 'none'`, HSTS, nosniff, Referrer-Policy, Permissions-Policy), `poweredByHeader: false`, `reactStrictMode`.
+- Verified: no `getSession` anywhere; `SUPABASE_SECRET_KEY` read only in `lib/supabase/admin.js`, imported only from `lib/actions/team.js` (`"use server"`); build-time canary never appears in `.next/static`; git history clean of secrets.
+- `docs/DEPLOY.md` is the production checklist (Supabase prod project, SMTP, leaked-password protection, Vercel env vars, smoke test).
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
@@ -298,7 +307,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 5. ✅ Admin: Tasks (board, list, drawer, subtasks, comments, activity)
 6. ✅ Employee portal
 7. ✅ Admin Dashboard, Global Monitor, Team
-8. Settings, hardening, deploy checklist
+8. ✅ Settings, hardening, deploy checklist
 
 Manual test checklists are delivered at the end of phases 2, 6 and 8.
 

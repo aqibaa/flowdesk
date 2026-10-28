@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# FlowDesk
 
-## Getting Started
+Internal service-delivery and project-tracking tool for a digital agency.
+Two roles — **admin** and **employee** — no client portal.
 
-First, run the development server:
+- Admin: clients, service templates, projects (activate → template tasks are
+  copied), Jira-style task board, dashboard, global monitor, team workload,
+  settings.
+- Employee: only their own tasks (dashboard, grouped list, personal board),
+  status changes through a guarded RPC. Project progress is recalculated by
+  database triggers.
+
+**Stack:** Next.js 16 (App Router, plain JavaScript), Tailwind v4 + shadcn/ui,
+Supabase (Postgres + Auth + RLS), Zod + react-hook-form, dnd-kit, Recharts,
+Zustand (UI state only). Deployed on Vercel.
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in the Supabase values
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apply `supabase/migrations/*.sql` in order to your Supabase project (and
+optionally `supabase/seed.sql` for demo data), create the first admin as
+described in `CLAUDE.md`, then sign in.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| command | purpose |
+|---|---|
+| `npm run dev` | dev server (Turbopack) |
+| `npm run build` | production build — must pass before merging |
+| `npm run lint` | ESLint (next/core-web-vitals + React 19 rules) |
 
-## Learn More
+## Where to look
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `CLAUDE.md` — full architecture, schema, RLS matrix, conventions, phase log.
+- `docs/DEPLOY.md` — production checklist (Supabase + Vercel).
+- `docs/design/` — UI mockups the pages follow.
+- `supabase/migrations/` — the only way the database changes.
