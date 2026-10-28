@@ -16,8 +16,11 @@ export function AppShell({ profile, children }) {
     job_title: profile.job_title,
   };
 
+  // `portal-employee` swaps the primary/accent tokens to blue (globals.css).
+  const portalClass = profile.role === "employee" ? "portal-employee" : "";
+
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className={`flex min-h-screen bg-background ${portalClass}`}>
       <Sidebar profile={plainProfile} />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar profile={plainProfile} />

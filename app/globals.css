@@ -88,6 +88,39 @@
   --sidebar-ring: oklch(0.65 0.2 285);
 }
 
+/* Employee portal: same system, blue accent instead of violet. */
+.portal-employee {
+  --primary: oklch(0.55 0.2 255); /* ~#2563EB */
+  --ring: oklch(0.55 0.2 255);
+  --accent: oklch(0.95 0.03 250);
+  --accent-foreground: oklch(0.3 0.08 255);
+  --sidebar-primary: oklch(0.55 0.2 255);
+  --sidebar-accent: oklch(0.95 0.03 250);
+  --sidebar-accent-foreground: oklch(0.3 0.08 255);
+  --sidebar-ring: oklch(0.55 0.2 255);
+  --chart-1: oklch(0.55 0.2 255);
+}
+.dark .portal-employee {
+  --primary: oklch(0.68 0.17 250);
+  --ring: oklch(0.68 0.17 250);
+  --accent: oklch(0.3 0.05 255);
+  --accent-foreground: oklch(0.95 0.01 255);
+  --sidebar-primary: oklch(0.68 0.17 250);
+  --sidebar-accent: oklch(0.3 0.05 255);
+  --sidebar-accent-foreground: oklch(0.95 0.01 255);
+  --sidebar-ring: oklch(0.68 0.17 250);
+  --chart-1: oklch(0.68 0.17 250);
+}
+
+/* Confetti-lite: a few CSS particles when an employee completes a task. */
+@keyframes confetti-pop {
+  0%   { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(540deg); opacity: 0; }
+}
+.confetti-piece {
+  animation: confetti-pop 700ms cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
 @theme inline {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-heading: var(--font-jakarta), var(--font-inter), ui-sans-serif, sans-serif;

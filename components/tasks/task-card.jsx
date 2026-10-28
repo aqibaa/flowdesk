@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
  * Kanban card. Presentational; the board wraps it with drag handlers.
  * @param {{ task: object, onOpen?: () => void, dragging?: boolean, className?: string }} props
  */
-export function TaskCard({ task, onOpen, dragging = false, className, ...rest }) {
+export function TaskCard({ task, onOpen, dragging = false, hideAssignee = false, className, ...rest }) {
   const done = task.status === "completed";
   const days = task.due_date ? differenceInCalendarDays(parseISO(task.due_date), new Date()) : null;
   const overdue = !done && days !== null && days < 0;
@@ -54,13 +54,13 @@ export function TaskCard({ task, onOpen, dragging = false, className, ...rest })
             <MessageSquareIcon className="size-3" /> {task.comment_count}
           </span>
         )}
-        <span className="ml-auto">
+        {!hideAssignee && <span className="ml-auto">
           {task.assignee ? (
             <Avatar name={task.assignee.full_name} size="sm" />
           ) : (
             <span className="rounded-full border border-dashed px-1.5 py-0.5 text-[10px]">Unassigned</span>
           )}
-        </span>
+        </span>}
       </div>
     </article>
   );

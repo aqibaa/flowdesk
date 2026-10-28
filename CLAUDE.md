@@ -218,6 +218,7 @@ dark mode, avatar menu).
 | `/admin/settings` | profile, roles & access, notification toggles |
 | `/employee` | my open tasks count, due soon, completed this week |
 | `/employee/tasks` | my tasks grouped by client → project, status dropdown / quick-complete, drawer with subtasks + comments |
+| `/employee/board` | personal Kanban of my tasks (drop = status change) |
 
 Loading states, empty states, error boundaries and toasts everywhere.
 
@@ -228,7 +229,8 @@ Loading states, empty states, error boundaries and toasts everywhere.
   written as a file in `supabase/migrations/` (source of truth), then applied with
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
-  `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`;
+  `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -275,6 +277,13 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Create: `components/forms/task-form-dialog.jsx` (react-hook-form; new cards get `position = count` in their column).
 - Admin comment action is `addComment` (admin-guarded); the employee portal gets its own in Phase 6.
 
+## Employee portal (Phase 6)
+- Blue accent: `AppShell` adds `.portal-employee` for role `employee`, which re-points `--primary`/`--accent`/sidebar tokens (globals.css). No component changes needed.
+- Data: `employee_tasks_view` (migrations 7 + 9) now also carries `project_progress_percent`, `service_title`, `subtask_total/done`, `comment_count`, `project_task_total/done` (counts only). `my_task_comments_view` (migration 8) adds `author_name` because employees cannot read other profiles. `lib/queries/employee.js` (`listMyTasks`, `groupMyTasks`, `summariseMyTasks`, `weeklyCompletions`, `getMyTaskDetail`); `lib/actions/employee.js` (`updateMyTaskStatus` → RPC, `addMyComment`).
+- Routes: `/employee` (greeting + date, Today's focus, 3 KPIs, upcoming deadlines, lazy Recharts productivity chart), `/employee/tasks` (client → project collapsible groups, priority dot, status pill select, quick-complete checkbox with `ConfettiBurst`, optimistic project progress mirroring the DB formula, `?done=1` shows completed, `?task=<id>` drawer), `/employee/board` (personal Kanban, drop = status change, lazy dnd-kit).
+- `EmployeeTaskDrawer`: read-only fields, status pill, `SubtasksList readOnly`, `CommentsSection submitAction={addMyComment}`; no activity log.
+- Intentionally NOT built (not in schema): attachments, time tracking, epics/sprints/labels/story points, timeline/calendar/backlog views, Blocked status, client-visible toggle, @mentions, notifications.
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
@@ -282,7 +291,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 3. ✅ Admin: Clients + Services (template editor)
 4. ✅ Admin: Projects (create, activate, detail)
 5. ✅ Admin: Tasks (board, list, drawer, subtasks, comments, activity)
-6. Employee portal
+6. ✅ Employee portal
 7. Admin Dashboard, Global Monitor, Team
 8. Settings, hardening, deploy checklist
 
