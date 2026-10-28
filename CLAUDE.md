@@ -284,6 +284,11 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - `EmployeeTaskDrawer`: read-only fields, status pill, `SubtasksList readOnly`, `CommentsSection submitAction={addMyComment}`; no activity log.
 - Intentionally NOT built (not in schema): attachments, time tracking, epics/sprints/labels/story points, timeline/calendar/backlog views, Blocked status, client-visible toggle, @mentions, notifications.
 
+## Dashboard, Monitor, Team (Phase 7)
+- `lib/queries/dashboard.js`: KPIs (overall progress = mean of active projects), `getCompletionTrend` (weekly buckets from `completed_at`), `getProjectsByService` (active), `getAtRiskProjects` (overdue → due ≤7d → behind schedule by ≥25pts → on hold; top 5). `/admin`: `app/(app)/admin/{page,dashboard-charts-loader,dashboard-charts,at-risk-card}.jsx`; Recharts in one lazy chunk.
+- `lib/queries/monitor.js`: KPIs (active, at-risk, team load % = Σ hours_due_this_week ÷ (employees × 40)), `getTopProjects` (5 active, soonest due, tasks in position order = "delivery pipeline", distinct assignees), `getWorkloadHeatmap` (Mon–Fri estimated hours of open tasks due per day). `/admin/monitor`: `{page,refresh-button,project-monitor-card,workload-heatmap}.jsx`; `RefreshButton` = `router.refresh()`, no polling.
+- `lib/queries/team.js`: profiles merged with `employee_workload_view`; `getTeamStats`. `/admin/team`: KPIs, search (`q`), workload meter column, "View tasks" → `/admin/tasks?assignee=<id>`, role select, deactivate via row menu. `lib/workload.js` → `workloadStatus(percent)` shared.
+
 ## Phases
 0. ✅ Project setup
 1. ✅ Database migrations + seed
@@ -292,7 +297,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 4. ✅ Admin: Projects (create, activate, detail)
 5. ✅ Admin: Tasks (board, list, drawer, subtasks, comments, activity)
 6. ✅ Employee portal
-7. Admin Dashboard, Global Monitor, Team
+7. ✅ Admin Dashboard, Global Monitor, Team
 8. Settings, hardening, deploy checklist
 
 Manual test checklists are delivered at the end of phases 2, 6 and 8.
