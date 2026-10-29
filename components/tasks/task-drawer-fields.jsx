@@ -4,15 +4,14 @@ import { useState, useTransition } from "react";
 import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { updateTask } from "@/lib/actions/tasks";
-import { TASK_PRIORITIES, TASK_PRIORITY_LABELS, TASK_STATUSES, TASK_STATUS_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SheetClose } from "@/components/ui/sheet";
+import { PriorityPillSelect, StatusPillSelect } from "./status-pill-select";
 
 const NONE = "__none__";
 
@@ -43,36 +42,18 @@ export function TaskDrawerFields({ task, options }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <Select value={task.status} onValueChange={(status) => save({ status })}>
-          <SelectTrigger size="sm" className="w-40 rounded-full border-0 bg-accent font-medium">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TASK_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>{TASK_STATUS_LABELS[s]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={task.priority} onValueChange={(priority) => save({ priority })}>
-          <SelectTrigger size="sm" className="w-32 rounded-full">
-            <SelectValue>
-              <Badge variant={task.priority}>{TASK_PRIORITY_LABELS[task.priority]}</Badge>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {TASK_PRIORITIES.map((p) => (
-              <SelectItem key={p} value={p}>{TASK_PRIORITY_LABELS[p]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <StatusPillSelect value={task.status} onChange={(status) => save({ status })} disabled={pending} />
+          <PriorityPillSelect value={task.priority} onChange={(priority) => save({ priority })} disabled={pending} />
+          {pending && <Loader2Icon className="size-4 animate-spin text-muted-foreground" />}
+        </div>
         {/* Close sits on the status row, clear of the breadcrumb. */}
         <SheetClose asChild>
-          <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground" aria-label="Close">
+          <Button variant="ghost" size="icon" className="size-8 shrink-0 text-muted-foreground" aria-label="Close">
             <XIcon />
           </Button>
         </SheetClose>
-        {pending && <Loader2Icon className="ml-auto size-4 animate-spin text-muted-foreground" />}
       </div>
 
       <input

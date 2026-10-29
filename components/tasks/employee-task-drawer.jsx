@@ -61,12 +61,14 @@ export function EmployeeTaskDrawer({ task }) {
             <ScrollArea className="h-[calc(100vh-3.5rem)]">
               <div className="space-y-6 px-4 py-4">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <StatusPillSelect value={task.status} onChange={changeStatus} disabled={pending} />
-                    <Badge variant={task.priority}>{TASK_PRIORITY_LABELS[task.priority]}</Badge>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <StatusPillSelect value={task.status} onChange={changeStatus} disabled={pending} />
+                      <Badge variant={task.priority} className="h-7 px-2.5">{TASK_PRIORITY_LABELS[task.priority]}</Badge>
+                    </div>
                     {/* Close sits on the status row, clear of the breadcrumb. */}
                     <SheetClose asChild>
-                      <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground" aria-label="Close">
+                      <Button variant="ghost" size="icon" className="size-8 shrink-0 text-muted-foreground" aria-label="Close">
                         <XIcon />
                       </Button>
                     </SheetClose>
