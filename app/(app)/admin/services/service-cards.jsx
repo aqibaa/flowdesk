@@ -57,6 +57,9 @@ function ServiceCard({ service, selected }) {
             {service.active_project_count > 0 && (
               <Badge variant="active">{service.active_project_count} active projects</Badge>
             )}
+            {service.template_tasks.length === 0 && (
+              <Badge variant="in_review">No template tasks</Badge>
+            )}
           </div>
         </div>
         <PublishedSwitch service={service} />

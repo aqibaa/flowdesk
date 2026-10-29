@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2Icon, PlusIcon } from "lucide-react";
@@ -27,6 +28,7 @@ import {
 /** Create / edit a service's title, description and published flag. */
 export function ServiceFormDialog({ service, trigger }) {
   const isEdit = Boolean(service);
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const [formError, setFormError] = useState(null);
@@ -53,8 +55,20 @@ export function ServiceFormDialog({ service, trigger }) {
       setFormError(null);
       const res = isEdit ? await updateService(service.id, values) : await createService(values);
       if (res.ok) {
-        toast.success(res.message);
         onOpenChange(false);
+        if (isEdit) {
+          toast.success(res.message);
+          return;
+        }
+        // A new service has no template yet: nudge the admin and open the
+        // editor straight away so projects of this type start with tasks.
+        const editorHref = `/admin/services?service=${res.id}`;
+        toast.success("Service created — now add its template tasks.", {
+          description: "Every project of this service starts with these tasks when it is activated.",
+          duration: 8000,
+          action: { label: "Add tasks", onClick: () => router.push(editorHref) },
+        });
+        router.push(editorHref);
         return;
       }
       if (res.errors) for (const [n, m] of Object.entries(res.errors)) setError(n, { message: m });
