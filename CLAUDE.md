@@ -234,7 +234,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`, `notification_cleanup`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -306,6 +306,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - In-app: `AppShell` (async) fetches `listMyNotifications` once per request → `TopBar` → `components/layout/notifications-menu.jsx` (badge, latest 10, click = mark read + go to task, mark all). Actions in `lib/actions/notifications.js`.
 - Email: `lib/email/mailer.js` (server-only nodemailer, env `SMTP_HOST/PORT/USER/PASS/FROM`, null when unset) + `lib/email/dispatch.js`. Server Actions call `queueNotificationEmails({ taskId } | { projectId })` after the mutation; it wraps `dispatchPendingEmails` in Next's `after()`, so the action returns before SMTP runs (activation = one dispatch per project). Secret-key client reads `notifications` with `emailed_at IS NULL`, sends to recipients whose `email` toggle is on, stamps `emailed_at` (also when SMTP is off). A failed send leaves `emailed_at` NULL and writes `notifications.email_error` (migration 13); it is retried on the next dispatch for that project. Never surfaced to the UI.
 - Live toasts (migration 12): `notifications` is in the `supabase_realtime` publication; `components/layout/notification-toaster.jsx` (mounted in `AppShell`) subscribes to INSERTs filtered by `user_id` (RLS also scopes the channel), shows a sonner toast with an "Open" action and calls `router.refresh()` so the bell updates. Push, not polling.
+- Cleanup (migration 15): pg_cron job `purge_old_notifications` runs `purge_old_notifications()` daily at 03:00 UTC — deletes read rows > 30 days and unread rows > 90 days. Not callable via the API. Task/project deletes cascade to notifications. `activity_log` is never purged.
 - `NOTIFICATION_EVENTS` keys = trigger types.
 
 ## Phases

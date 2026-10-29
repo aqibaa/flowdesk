@@ -26,6 +26,8 @@ on the `flowdesk-dev` project and must be repeated on a production project.
 - [ ] Project Settings → API Keys: copy the **publishable** key and create a
       **secret** key for the app (never the legacy `service_role` JWT in
       client code; the secret key is used server-side only).
+- [ ] Database → Extensions: confirm **pg_cron** is enabled (migration 15 enables it; the
+      nightly `purge_old_notifications` job needs it).
 - [ ] Run Database → Advisors → Security. Expected intentional findings:
       `employee_tasks_view` and `my_task_comments_view` are SECURITY DEFINER
       (self-filtered to `auth.uid()`); `is_admin`, `activate_project`,
