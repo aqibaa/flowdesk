@@ -45,7 +45,11 @@ export function NotificationToaster({ userId, role }) {
           router.refresh();
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        // Visible in the browser console; SUBSCRIBED = live push is working.
+        if (status === "SUBSCRIBED") console.info("[notifications] live");
+        else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") console.warn("[notifications] realtime", status, err?.message ?? "");
+      });
 
     return () => {
       supabase.removeChannel(channel);
