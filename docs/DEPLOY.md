@@ -45,6 +45,8 @@ on the `flowdesk-dev` project and must be repeated on a production project.
       - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — optional;
         enables email notifications via nodemailer (Resend/Brevo/Workspace SMTP).
         Without them only in-app (bell) notifications are sent.
+      - `CRON_SECRET` — any long random string; required so `/api/cron/emails`
+        (daily reminder emails + retries, see `vercel.json`) accepts Vercel's calls.
 - [ ] Deploy. Confirm `/login` loads and the response has the security headers
       (`Content-Security-Policy`, `X-Frame-Options: DENY`, HSTS; no `X-Powered-By`).
 - [ ] Add the Vercel preview domain pattern to Supabase Redirect URLs if you

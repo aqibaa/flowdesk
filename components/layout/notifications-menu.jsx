@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { BellIcon, CheckCheckIcon, MessageSquareIcon, RefreshCwIcon, UserPlusIcon } from "lucide-react";
+import { AlertTriangleIcon, BellIcon, CheckCheckIcon, ClockIcon, MessageSquareIcon, RefreshCwIcon, UserPlusIcon } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { markAllNotificationsRead, markNotificationRead } from "@/lib/actions/notifications";
@@ -21,6 +21,9 @@ const ICONS = {
   task_assigned: UserPlusIcon,
   task_status_changed: RefreshCwIcon,
   task_commented: MessageSquareIcon,
+  task_due_soon: ClockIcon,
+  task_overdue: AlertTriangleIcon,
+  overdue_digest: AlertTriangleIcon,
 };
 
 /** Where a notification leads, per role. */
