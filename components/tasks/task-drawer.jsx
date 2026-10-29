@@ -28,7 +28,7 @@ export function TaskDrawer({ task, options }) {
 
   return (
     <Sheet open={Boolean(task)} onOpenChange={(o) => !o && close()}>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
+      <SheetContent hideClose className="w-full gap-0 p-0 sm:max-w-md">
         {task && (
           <>
             <SheetTitle className="sr-only">{task.title}</SheetTitle>

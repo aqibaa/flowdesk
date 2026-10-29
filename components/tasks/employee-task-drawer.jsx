@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { ChevronRightIcon } from "lucide-react";
+import { ChevronRightIcon, XIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUrlState } from "@/hooks/use-url-state";
@@ -9,7 +9,8 @@ import { addMyComment, updateMyTaskStatus } from "@/lib/actions/employee";
 import { TASK_PRIORITY_LABELS } from "@/lib/constants";
 import { formatTaskKey } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DueDate } from "@/components/shared/due-date";
 import { StatusPillSelect } from "./status-pill-select";
@@ -43,7 +44,7 @@ export function EmployeeTaskDrawer({ task }) {
 
   return (
     <Sheet open={Boolean(task)} onOpenChange={(o) => !o && close()}>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
+      <SheetContent hideClose className="w-full gap-0 p-0 sm:max-w-md">
         {task && (
           <>
             <SheetTitle className="sr-only">{task.title}</SheetTitle>
@@ -63,6 +64,12 @@ export function EmployeeTaskDrawer({ task }) {
                   <div className="flex items-center gap-2">
                     <StatusPillSelect value={task.status} onChange={changeStatus} disabled={pending} />
                     <Badge variant={task.priority}>{TASK_PRIORITY_LABELS[task.priority]}</Badge>
+                    {/* Close sits on the status row, clear of the breadcrumb. */}
+                    <SheetClose asChild>
+                      <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground" aria-label="Close">
+                        <XIcon />
+                      </Button>
+                    </SheetClose>
                   </div>
                   <h2 className="font-heading text-xl font-bold leading-tight">{task.title}</h2>
                   {task.description ? (

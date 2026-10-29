@@ -36,7 +36,7 @@ function SheetOverlay({ className, ...props }) {
 }
 
 /** Slide-over panel. Used for the task drawer and client detail drawer. */
-function SheetContent({ className, children, side = "right", ...props }) {
+function SheetContent({ className, children, side = "right", hideClose = false, ...props }) {
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -57,10 +57,12 @@ function SheetContent({ className, children, side = "right", ...props }) {
         {...props}
       >
         {children}
+        {!hideClose && (
         <SheetPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none">
           <XIcon className="size-4" />
           <span className="sr-only">Close</span>
         </SheetPrimitive.Close>
+        )}
       </SheetPrimitive.Content>
     </SheetPortal>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckIcon, Loader2Icon } from "lucide-react";
+import { CheckIcon, Loader2Icon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 import { updateTask } from "@/lib/actions/tasks";
 import { TASK_PRIORITIES, TASK_PRIORITY_LABELS, TASK_STATUSES, TASK_STATUS_LABELS } from "@/lib/constants";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SheetClose } from "@/components/ui/sheet";
 
 const NONE = "__none__";
 
@@ -65,6 +66,12 @@ export function TaskDrawerFields({ task, options }) {
             ))}
           </SelectContent>
         </Select>
+        {/* Close sits on the status row, clear of the breadcrumb. */}
+        <SheetClose asChild>
+          <Button variant="ghost" size="icon" className="ml-auto size-8 text-muted-foreground" aria-label="Close">
+            <XIcon />
+          </Button>
+        </SheetClose>
         {pending && <Loader2Icon className="ml-auto size-4 animate-spin text-muted-foreground" />}
       </div>
 
