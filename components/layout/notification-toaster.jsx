@@ -47,7 +47,10 @@ export function NotificationToaster({ userId, role }) {
 
     const subscribe = async (attempt = 0) => {
       if (stopped) return;
-      if (!(await freshAccessToken(supabase))) return;
+      const ok = await freshAccessToken(supabase);
+      // The effect may have been cleaned up while we awaited (Strict Mode
+      // double-mount); joining now would leave an orphan subscription.
+      if (!ok || stopped) return;
 
       // Unique topic per attempt: the browser client is a singleton and React
       // (Strict Mode) mounts twice, so a re-used topic would re-join a channel
