@@ -234,7 +234,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -289,8 +289,8 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Intentionally NOT built (not in schema): attachments, time tracking, epics/sprints/labels/story points, timeline/calendar/backlog views, Blocked status, client-visible toggle, @mentions, notifications.
 
 ## Dashboard, Monitor, Team (Phase 7)
-- `lib/queries/dashboard.js`: KPIs (overall progress = mean of active projects), `getCompletionTrend` (weekly buckets from `completed_at`), `getProjectsByService` (active), `getAtRiskProjects` (overdue → due ≤7d → behind schedule by ≥25pts → on hold; top 5). `/admin`: `app/(app)/admin/{page,dashboard-charts-loader,dashboard-charts,at-risk-card}.jsx`; Recharts in one lazy chunk.
-- `lib/queries/monitor.js`: KPIs (active, at-risk, team load % = Σ hours_due_this_week ÷ (employees × 40)), `getTopProjects` (5 active, soonest due, tasks in position order = "delivery pipeline", distinct assignees), `getWorkloadHeatmap` (Mon–Fri estimated hours of open tasks due per day). `/admin/monitor`: `{page,refresh-button,project-monitor-card,workload-heatmap}.jsx`; `RefreshButton` = `router.refresh()`, no polling.
+- `lib/queries/dashboard.js` reads admin-only SQL objects from migration 14 (all `security_invoker` + `is_admin()` guard, employees get zero rows): `dashboard_kpis_view` (1 row), `completion_trend(p_weeks)` (zero-filled Mon–Sun weeks), `projects_by_service_view`, `at_risk_projects_view` (scoring overdue → due ≤7d → behind schedule by ≥25pts → on hold; app orders by `score` and limits 5). No aggregation in JS. `/admin`: `app/(app)/admin/{page,dashboard-charts-loader,dashboard-charts,at-risk-card}.jsx`; Recharts in one lazy chunk.
+- `lib/queries/monitor.js`: KPIs (active, at-risk, team load % = Σ hours_due_this_week ÷ (employees × 40)), `getTopProjects` (5 active, soonest due, tasks in position order = "delivery pipeline", distinct assignees), `getWorkloadHeatmap` (Mon–Fri; `workload_heatmap_view` = hours of open assigned tasks per employee per due day, migration 14). `/admin/monitor`: `{page,refresh-button,project-monitor-card,workload-heatmap}.jsx`; `RefreshButton` = `router.refresh()`, no polling.
 - `lib/queries/team.js`: profiles merged with `employee_workload_view`; `getTeamStats`. `/admin/team`: KPIs, search (`q`), workload meter column, "View tasks" → `/admin/tasks?assignee=<id>`, role select, deactivate via row menu. `lib/workload.js` → `workloadStatus(percent)` shared.
 
 ## Settings & hardening (Phase 8)

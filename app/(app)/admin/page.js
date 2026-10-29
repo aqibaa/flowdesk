@@ -15,12 +15,11 @@ export const metadata = { title: "Dashboard" };
 
 export default async function AdminDashboardPage() {
   const { supabase, profile } = await requireAdmin();
-  const now = new Date();
   const [kpis, trend, byService, atRisk] = await Promise.all([
     getDashboardKpis(supabase),
-    getCompletionTrend(supabase, 6, now),
+    getCompletionTrend(supabase, 6),
     getProjectsByService(supabase),
-    getAtRiskProjects(supabase, now),
+    getAtRiskProjects(supabase),
   ]);
   const firstName = profile.full_name?.split(" ")[0] ?? "";
 
