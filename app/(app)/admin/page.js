@@ -15,6 +15,7 @@ export const metadata = { title: "Dashboard" };
 
 export default async function AdminDashboardPage() {
   const { supabase, profile } = await requireAdmin();
+  const now = new Date();
   const [kpis, trend, byService, atRisk] = await Promise.all([
     getDashboardKpis(supabase),
     getCompletionTrend(supabase, 6),
