@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /** Card wrapper for a settings block: icon, title, description, content. */
 export function SettingsSection({ id, icon: Icon, title, description, aside, children, className }) {
   return (
-    <section id={id} className={cn("scroll-mt-24 rounded-2xl border bg-card p-5 shadow-soft sm:p-6", className)}>
+    <section id={id} className={cn("scroll-mt-40 rounded-2xl border bg-card p-5 shadow-soft sm:p-6", className)}>
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           {Icon && (

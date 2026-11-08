@@ -54,7 +54,9 @@ export function SettingsTabs({ tabs }) {
   };
 
   return (
-    <nav className="mb-6 inline-flex flex-wrap gap-1 rounded-2xl border bg-card p-1 shadow-soft" aria-label="Settings sections">
+    // Sticks just under the app header (56px bar + 36px breadcrumb + border).
+    <div className="sticky top-[93px] z-20 -mx-4 mb-6 bg-background/85 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <nav className="inline-flex flex-wrap gap-1 rounded-2xl border bg-card p-1 shadow-soft" aria-label="Settings sections">
       {tabs.map((t) => {
         const Icon = ICONS[t.icon];
         return (
@@ -77,5 +79,6 @@ export function SettingsTabs({ tabs }) {
         );
       })}
     </nav>
+    </div>
   );
 }
