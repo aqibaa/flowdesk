@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOutIcon, SettingsIcon, UserIcon } from "lucide-react";
+import { LogOutIcon, SettingsIcon } from "lucide-react";
 import { signOut } from "@/lib/actions/auth";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -33,18 +33,12 @@ export function UserMenu({ profile }) {
           <p className="truncate text-xs text-muted-foreground">{profile.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {/* One entry: profile, password, roles and notifications all live on Settings. */}
         <DropdownMenuItem asChild>
           <Link href={settingsHref}>
-            <UserIcon /> Profile
+            <SettingsIcon /> Profile &amp; settings
           </Link>
         </DropdownMenuItem>
-        {profile.role === "admin" && (
-          <DropdownMenuItem asChild>
-            <Link href="/admin/settings">
-              <SettingsIcon /> Settings
-            </Link>
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <form action={signOut}>
           <DropdownMenuItem asChild variant="destructive">
