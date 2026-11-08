@@ -13,10 +13,10 @@ export default async function MyTasksPage({ searchParams }) {
   const selectedId = uuidish(sp.task);
   const showDone = sp.done === "1";
 
-  const { supabase } = await requireUser();
+  const { supabase, profile } = await requireUser();
   const [rows, selected] = await Promise.all([
     listMyTasks(supabase),
-    selectedId ? getMyTaskDetail(supabase, selectedId) : null,
+    selectedId ? getMyTaskDetail(supabase, selectedId, profile.id) : null,
   ]);
   const visible = showDone ? rows : rows.filter((t) => t.status !== "completed");
   const groups = groupMyTasks(visible);

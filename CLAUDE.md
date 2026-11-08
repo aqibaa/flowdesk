@@ -234,14 +234,14 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`, `notification_cleanup`, `due_reminders`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`, `notification_cleanup`, `due_reminders`, `lead_delegation`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
   log in or load data; signed-in render checks must be done by the user on
   their machine. Claude verifies with build + lint + unauthenticated redirect
   checks, and verifies SQL/RPC behaviour through the MCP.
-- Expected advisor findings (intentional): `employee_tasks_view` is SECURITY
+- Expected advisor findings (intentional): `employee_tasks_view`, `my_task_comments_view`, `team_directory_view` are SECURITY
   DEFINER; `is_admin`, `activate_project`, `update_my_task_status` are executable
   by `authenticated` (each checks its caller). `rls_auto_enable` is Supabase's own.
 
@@ -286,6 +286,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - Data: `employee_tasks_view` (migrations 7 + 9) now also carries `project_progress_percent`, `service_title`, `subtask_total/done`, `comment_count`, `project_task_total/done` (counts only). `my_task_comments_view` (migration 8) adds `author_name` because employees cannot read other profiles. `lib/queries/employee.js` (`listMyTasks`, `groupMyTasks`, `summariseMyTasks`, `weeklyCompletions`, `getMyTaskDetail`); `lib/actions/employee.js` (`updateMyTaskStatus` → RPC, `addMyComment`).
 - Routes: `/employee` (greeting + date, Today's focus, 3 KPIs, upcoming deadlines, lazy Recharts productivity chart), `/employee/tasks` (client → project collapsible groups, priority dot, status pill select, quick-complete checkbox with `ConfettiBurst`, optimistic project progress mirroring the DB formula, `?done=1` shows completed, `?task=<id>` drawer), `/employee/board` (personal Kanban, drop = status change, lazy dnd-kit).
 - `EmployeeTaskDrawer`: read-only fields, status pill, `SubtasksList readOnly`, `CommentsSection submitAction={addMyComment}`; no activity log.
+- Lead delegation (migration 17): `employee_tasks_view` v4 appends `project_lead_id`, `assignee_name`; `team_directory_view` (security definer; id/name/job_title/role of active users only) lets an employee pick a colleague; RPC `reassign_task(task, assignee)` allows admin or the task's project lead, updates only `assignee_id` (triggers do activity + notification). `getMyTaskDetail(supabase, id, viewerId)` sets `can_reassign` + `team` when the viewer leads the project; the drawer then shows an Assignee select (`reassignMyTask`) and closes after handing the task over. Employees still have no UPDATE policy on tasks.
 - Intentionally NOT built (not in schema): attachments, time tracking, epics/sprints/labels/story points, timeline/calendar/backlog views, Blocked status, client-visible toggle, @mentions, notifications.
 
 ## Dashboard, Monitor, Team (Phase 7)

@@ -22,10 +22,10 @@ export default async function MyBoardPage({ searchParams }) {
   const sp = await searchParams;
   const selectedId = uuidish(sp.task);
 
-  const { supabase } = await requireUser();
+  const { supabase, profile } = await requireUser();
   const [rows, selected] = await Promise.all([
     listMyTasks(supabase),
-    selectedId ? getMyTaskDetail(supabase, selectedId) : null,
+    selectedId ? getMyTaskDetail(supabase, selectedId, profile.id) : null,
   ]);
 
   const columns = Object.fromEntries(

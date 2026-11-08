@@ -5,7 +5,7 @@ import { ChevronRightIcon, XIcon } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useUrlState } from "@/hooks/use-url-state";
-import { addMyComment, updateMyTaskStatus } from "@/lib/actions/employee";
+import { addMyComment, reassignMyTask, updateMyTaskStatus } from "@/lib/actions/employee";
 import { TASK_PRIORITY_LABELS } from "@/lib/constants";
 import { formatTaskKey } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -13,13 +13,14 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetTitle } from "@
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DueDate } from "@/components/shared/due-date";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusPillSelect } from "./status-pill-select";
 import { SubtasksList } from "./subtasks-list";
 import { CommentsSection } from "./comments-section";
 
-function Fact({ label, children }) {
+function Fact({ label, children, className }) {
   return (
-    <div>
+    <div className={className}>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       <div className="mt-0.5 text-sm font-medium">{children}</div>
     </div>
@@ -40,6 +41,17 @@ export function EmployeeTaskDrawer({ task }) {
     start(async () => {
       const res = await updateMyTaskStatus({ task_id: task.id, status });
       res.ok ? toast.success(res.message) : toast.error(res.message);
+    });
+
+  // Project lead only (task.can_reassign): hand the task to a teammate. Once
+  // it belongs to someone else it leaves my list, so the drawer closes.
+  const reassign = (assigneeId) =>
+    start(async () => {
+      const who = task.team.find((m) => m.id === assigneeId)?.full_name ?? "teammate";
+      const res = await reassignMyTask({ task_id: task.id, assignee_id: assigneeId });
+      if (!res.ok) return toast.error(res.message);
+      toast.success(`Task handed to ${who}.`);
+      close();
     });
 
   return (
@@ -86,6 +98,25 @@ export function EmployeeTaskDrawer({ task }) {
                   <Fact label="Estimate">{task.estimated_hours ? `${Number(task.estimated_hours)}h` : "—"}</Fact>
                   <Fact label="Service">{task.service_title}</Fact>
                   <Fact label="Completed">{task.completed_at ? format(new Date(task.completed_at), "d MMM yyyy") : "—"}</Fact>
+                  <Fact label={task.can_reassign ? "Assignee · you lead this project" : "Assignee"} className="col-span-2">
+                    {task.can_reassign ? (
+                      <Select value={task.assignee_id} onValueChange={reassign} disabled={pending}>
+                        <SelectTrigger size="sm" aria-label="Assignee" className="mt-1 w-full bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {task.team.map((m) => (
+                            <SelectItem key={m.id} value={m.id}>
+                              {m.full_name}
+                              {m.job_title && <span className="text-muted-foreground"> · {m.job_title}</span>}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      task.assignee_name ?? "—"
+                    )}
+                  </Fact>
                 </div>
 
                 <SubtasksList taskId={task.id} subtasks={task.subtasks} readOnly />
