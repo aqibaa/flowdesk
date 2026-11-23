@@ -18,9 +18,9 @@ on the `flowdesk-dev` project and must be repeated on a production project.
 - [ ] Authentication → Emails → **Invite user** template: link must be
       `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite`.
       Same pattern with `type=recovery` for the **Reset password** template.
-- [ ] Authentication → Emails → **SMTP Settings**: enable custom SMTP
-      (Resend / Brevo / Google Workspace). The built-in sender is limited to
-      ~2 emails/hour and is not for production.
+- [ ] Authentication → Emails → **SMTP Settings** (optional): the built-in sender
+      is limited to ~2 invite emails/hour; for a large team enable custom SMTP
+      or create users from the dashboard. App notifications are in-app only.
 - [ ] Authentication → Attack protection: enable **Leaked password protection**
       (the only remaining security-advisor warning).
 - [ ] Project Settings → API Keys: copy the **publishable** key and create a
@@ -42,11 +42,6 @@ on the `flowdesk-dev` project and must be repeated on a production project.
       - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
       - `SUPABASE_SECRET_KEY` (server-only; Vercel never exposes non-`NEXT_PUBLIC_` vars to the browser)
       - `NEXT_PUBLIC_SITE_URL` = `https://<domain>` (used in invite + notification links)
-      - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — optional;
-        enables email notifications via nodemailer (Resend/Brevo/Workspace SMTP).
-        Without them only in-app (bell) notifications are sent.
-      - `CRON_SECRET` — any long random string; required so `/api/cron/emails`
-        (daily reminder emails + retries, see `vercel.json`) accepts Vercel's calls.
 - [ ] Deploy. Confirm `/login` loads and the response has the security headers
       (`Content-Security-Policy`, `X-Frame-Options: DENY`, HSTS; no `X-Powered-By`).
 - [ ] Add the Vercel preview domain pattern to Supabase Redirect URLs if you

@@ -26,7 +26,7 @@ or admin pages.
   `@supabase/ssr`.
 - Zod v4 + react-hook-form (`@hookform/resolvers`), `@dnd-kit/*` for Kanban,
   Recharts lazy-loaded with `next/dynamic`, Zustand for UI-only state.
-- Deploy: Vercel. **No Prisma, no Clerk.**
+- Deploy: Vercel (live: https://flowdesk-olive-two.vercel.app). **No Prisma, no Clerk, no email sending.**
 
 ### Next.js 16 notes
 - Middleware file is **`proxy.js`** (exports `proxy`), not `middleware.js`.
@@ -218,7 +218,7 @@ dark mode, avatar menu).
 | `/admin/services` | service cards + drawer to edit ordered task template |
 | `/admin/team` | employee list with workload meter, invite modal |
 | `/admin/clients` | table + add/edit form + detail drawer listing projects with progress |
-| `/admin/settings` | profile, password, roles & access, notification toggles |
+| `/admin/settings` | profile, password, roles & access, notification toggles (in-app only) |
 | `/employee/settings` | own profile, password, notification toggles |
 | `/employee` | my open tasks count, due soon, completed this week |
 | `/employee/tasks` | my tasks grouped by client → project, status dropdown / quick-complete, drawer with subtasks + comments |
@@ -234,7 +234,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
   `apply_migration` using the same name, then verified with `get_advisors`.
 - Migrations applied so far: `schema`, `logic`, `rls`, `harden_function_grants`,
   `replace_service_template` (+ `_nullsafe` re-apply of the same function), `move_task`,
-  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`, `notification_cleanup`, `due_reminders`, `lead_delegation`;
+  `employee_view_v2`, `my_task_comments_view`, `employee_view_v3`, `notification_prefs`, `notifications`, `notifications_realtime`, `notification_email_error`, `dashboard_views`, `notification_cleanup`, `due_reminders`, `lead_delegation`, `notify_in_app_only`;
   `seed.sql` applied once.
 - The build sandbox has NO network route to `*.supabase.co` (only the MCP
   connector reaches the project). A local `next start` here therefore cannot
@@ -295,7 +295,7 @@ Loading states, empty states, error boundaries and toasts everywhere.
 - `lib/queries/team.js`: profiles merged with `employee_workload_view`; `getTeamStats`. `/admin/team`: KPIs, search (`q`), workload meter column, "View tasks" → `/admin/tasks?assignee=<id>`, role select, deactivate via row menu. `lib/workload.js` → `workloadStatus(percent)` shared.
 
 ## Settings & hardening (Phase 8)
-- `profiles.notification_prefs jsonb` (migration 10): `{event: {email, in_app}}`, missing keys = enabled; events in `NOTIFICATION_EVENTS` (`lib/validations/settings.js`). Preferences only — no email sending exists.
+- `profiles.notification_prefs jsonb` (migration 10): `{event: {in_app}}` (legacy `email` key ignored), missing keys = enabled; events in `NOTIFICATION_EVENTS` (`lib/validations/settings.js`). Settings shows one "Notify" toggle per event.
 - `lib/actions/settings.js`: `updateMyProfile`, `changeMyPassword` (Auth `updateUser`), `updateMyNotificationPrefs` — all own-row, any role.
 - `/admin/settings`: tab strip (`settings-tabs.jsx`, scroll-spy) over Profile / Password / Roles & Access (`roles-access.jsx` → `updateUserRole`) / Notifications. `/employee/settings`: Profile / Password / Notifications. Shared forms in `components/forms/{profile-form,password-form,notification-prefs-form}.jsx`, wrapper `components/shared/settings-section.jsx`.
 - `next.config.mjs`: security headers (CSP with Supabase origin in `connect-src`, `frame-ancestors 'none'`, HSTS, nosniff, Referrer-Policy, Permissions-Policy), `poweredByHeader: false`, `reactStrictMode`.
@@ -305,10 +305,10 @@ Loading states, empty states, error boundaries and toasts everywhere.
 ## Notifications (Phase 9)
 - DB (migration 11): `notify_user()` honours `profiles.notification_prefs` (skips only when both channels are off) and inactive users, never notifies the actor. Triggers: `tasks_notify` (assignment → assignee; status change → assignee + all active admins) and `task_comments_notify` (→ assignee; employee comments → admins). `activate_project` now assigns template tasks to the project lead, which fires `task_assigned` for each.
 - In-app: `AppShell` (async) fetches `listMyNotifications` once per request → `TopBar` → `components/layout/notifications-menu.jsx` (badge, latest 10, click = mark read + go to task, mark all). Actions in `lib/actions/notifications.js`.
-- Email: `lib/email/mailer.js` (server-only nodemailer, env `SMTP_HOST/PORT/USER/PASS/FROM`, null when unset) + `lib/email/dispatch.js`. Server Actions call `queueNotificationEmails({ taskId } | { projectId })` after the mutation; it wraps `dispatchPendingEmails` in Next's `after()`, so the action returns before SMTP runs (activation = one dispatch per project). Secret-key client reads `notifications` with `emailed_at IS NULL`, sends to recipients whose `email` toggle is on, stamps `emailed_at` (also when SMTP is off). A failed send leaves `emailed_at` NULL and writes `notifications.email_error` (migration 13); it is retried on the next dispatch for that project. Never surfaced to the UI.
+- Email delivery was **removed** (Nov 2026): no SMTP, no `lib/email`, no cron route, no `vercel.json`. `notifications.emailed_at` / `email_error` columns remain unused. Migration 18 makes `notify_user()` honour only the `in_app` toggle.
 - Live toasts (migration 12): `notifications` is in the `supabase_realtime` publication; `components/layout/notification-toaster.jsx` (mounted in `AppShell`) subscribes to INSERTs filtered by `user_id` (RLS also scopes the channel), shows a sonner toast with an "Open" action and calls `router.refresh()` so the bell updates. Push, not polling.
 - Cleanup (migration 15): pg_cron job `purge_old_notifications` runs `purge_old_notifications()` daily at 03:00 UTC — deletes read rows > 30 days and unread rows > 90 days. Not callable via the API. Task/project deletes cascade to notifications. `activity_log` is never purged.
-- Due reminders (migration 16): pg_cron `send_due_reminders` at 03:00 UTC (08:00 PKT) → `send_due_reminders()` writes via `notify_user()`: `task_due_soon` (open task due tomorrow, once per due date), `task_overdue` (open task past due, once per due date — moving the date re-arms it), `overdue_digest` (one row per active admin per day, `task_id`/`project_id` null → links to `/admin`). Emails for cron-made rows: `app/api/cron/emails/route.js` (`vercel.json` cron 03:10 UTC, `Authorization: Bearer $CRON_SECRET`) runs `dispatchPendingEmails()` with no filter = all pending rows (max 200), which also retries earlier failures.
+- Due reminders (migration 16): pg_cron `send_due_reminders` at 03:00 UTC (08:00 PKT) → `send_due_reminders()` writes via `notify_user()`: `task_due_soon` (open task due tomorrow, once per due date), `task_overdue` (open task past due, once per due date — moving the date re-arms it), `overdue_digest` (one row per active admin per day, `task_id`/`project_id` null → links to `/admin`). (No email: reminders are bell + toast only.)
 - `NOTIFICATION_EVENTS` keys = trigger types (+ the three reminder types above).
 
 ## Phases
